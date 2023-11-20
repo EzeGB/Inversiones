@@ -24,8 +24,12 @@ public class Main {
 
         for (int i = 0; i<5; i++){
             FDI[i]=calcularFDI((i+1),FAI[i],Inf,TasaImpuestos,AF,AC);
-            System.out.println("El flujo de efectivo despues de impuestos a pesos constantes en el periodo " + (i+1) + " es " + FDI[i]);
         }
+        double VR = (AC + (0.2*AF)*(1-TasaImpuestos))*(-1);
+        System.out.println("VPN con TIR=-3.1: " +calcularVPN(FDI,AF,AC,VR,-0.031));
+        System.out.println("VPN con TIR=19.91: " + calcularVPN(FDI,AF,AC,VR,.1991));
+        System.out.println("VPN con TIR=7.26: "+calcularVPN(FDI,AF,AC,VR,.0726));
+
     }
     public static double simularTriangular(double[] estimaciones){
         double a = estimaciones[0];
@@ -66,7 +70,7 @@ public class Main {
         if (periodo>1){
             productoriaAC = calcularProductoriaInflacion(2, periodo, Inf);
         }
-        return (((FAI)*(productoriaGral)*(1-T))+((0.2*AF)*(T))-((AC*Inf.get((periodo-1)))*(productoriaAC)))/(productoriaGral);
+        return (((FAI)*(productoriaGral)*(1-T))+((0.2*-AF)*(T))-((-AC*Inf.get((periodo-1)))*(productoriaAC)))/(productoriaGral);
     }
 
     public static double calcularProductoriaInflacion(int periodoInicio, int cantidadPeriodos, ArrayList<Double>Inf){
@@ -75,6 +79,15 @@ public class Main {
             producto=producto*(1+Inf.get(i));
         }
         return producto;
+    }
+
+    public static double calcularVPN(double []FDI, double AF, double AC, double VR, double TIR){
+        double sumatoria = 0;
+        for (int i = 0; i<5; i++){
+            sumatoria = sumatoria + (FDI[i]/ Math.pow((1+TIR),(i+1)));
+        }
+        sumatoria = sumatoria + VR/ Math.pow((1+TIR),5);
+        return sumatoria + AC + AF;
     }
 
 }
