@@ -26,9 +26,22 @@ public class Main {
             FDI[i]=calcularFDI((i+1),FAI[i],Inf,TasaImpuestos,AF,AC);
         }
         double VR = (AC + (0.2*AF)*(1-TasaImpuestos))*(-1);
-        System.out.println("VPN con TIR=-3.1: " +calcularVPN(FDI,AF,AC,VR,-0.031));
-        System.out.println("VPN con TIR=19.91: " + calcularVPN(FDI,AF,AC,VR,.1991));
-        System.out.println("VPN con TIR=7.26: "+calcularVPN(FDI,AF,AC,VR,.0726));
+        double TIRminima=-0.031;
+        double TIRmaxima=0.1991;
+        double [] intervalosTIR = calcularIntervalosTIR(TIRminima,TIRmaxima,20);
+        double TIR0 = 0;
+
+        System.out.println("minima: " + calcularVPN(FDI,AF,AC,VR,TIRminima));
+        System.out.println("maxima: " + calcularVPN(FDI,AF,AC,VR,TIRmaxima));
+
+        int Intervaloinferior = 0;
+        while (calcularVPN(FDI,AF,AC,VR,intervalosTIR[Intervaloinferior])>0){
+            TIR0=interpolarLinealA0(intervalosTIR[Intervaloinferior],intervalosTIR[Intervaloinferior+1],
+                    calcularVPN(FDI,AF,AC,VR,intervalosTIR[Intervaloinferior]), calcularVPN(FDI,AF,AC,VR,intervalosTIR[Intervaloinferior+1]));
+            Intervaloinferior++;
+        }
+
+        System.out.println("La TIR interpolada es: " + TIR0 + " con una VPN de: " + calcularVPN(FDI,AF,AC,VR,TIR0));
 
     }
     public static double simularTriangular(double[] estimaciones){
@@ -88,6 +101,20 @@ public class Main {
         }
         sumatoria = sumatoria + VR/ Math.pow((1+TIR),5);
         return sumatoria + AC + AF;
+    }
+
+    public static double interpolarLinealA0 (double TIRinferior, double TIRsuperior, double VPNinferior, double VPNsuperior){
+        double TIR0 = (((-VPNinferior)*((TIRsuperior-TIRinferior)/(VPNsuperior-VPNinferior))) + TIRinferior);
+        return TIR0;
+    }
+
+    public static double [] calcularIntervalosTIR (double TIRminima, double TIRmaxima, int numeroIntervalos){
+        double [] intervalos=new double[numeroIntervalos+1];
+        double intervalo = (TIRmaxima-TIRminima)/numeroIntervalos;
+        for (int i=0; i<(numeroIntervalos+1);i++){
+            intervalos[i]=TIRminima+i*intervalo;
+        }
+        return intervalos;
     }
 
 }
