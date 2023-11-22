@@ -5,20 +5,44 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
+        System.out.println("Numero de iteraciones?:");
+        int numeroIteraciones = scan.nextInt();
 
-        double AF = simularTriangular(recolectarEstimaciones(scan, "AF"));
-        double AC = simularTriangular(recolectarEstimaciones(scan, "AC"));
-        double[] estimacionesFAI = recolectarEstimaciones(scan, "FAI");
+        double [] estAF = recolectarEstimaciones(scan, "AF");
+        double [] estAC = recolectarEstimaciones(scan, "AC");
+        double [] estFAI = recolectarEstimaciones(scan, "FAI");
+        double [] estInf1 = recolectarEstimaciones(scan, "Inf1");
+        double [] estInf2 = recolectarEstimaciones(scan, "Inf2");
+        double [] estInf3 = recolectarEstimaciones(scan, "Inf3");
+        double [] estInf4 = recolectarEstimaciones(scan, "Inf4");
+        double [] estInf5 = recolectarEstimaciones(scan, "Inf5");
+        double TIRminima=-0.031;
+        double TIRmaxima=0.1991;
+        double [] reporteTIR = new double[numeroIteraciones];
+        int indiceReporte = 0;
+
+        while (numeroIteraciones>0){
+            reporteTIR[indiceReporte] = iterar(estAF,estAC,estFAI,estInf1,estInf2,estInf3,estInf4,estInf5,TIRminima,TIRmaxima);
+            indiceReporte++;
+            numeroIteraciones--;
+        }
+
+    }
+    public static double iterar(double [] estAF, double [] estAC, double [] estFAI, double [] estInf1,
+                                double [] estInf2, double [] estInf3, double [] estInf4, double [] estInf5,
+                                double TIRminima, double TIRmaxima){
+        double AF = simularTriangular(estAF);
+        double AC = simularTriangular(estAC);
         double [] FAI = new double[5];
-            for (int i = 0; i<5; i++) {
-                FAI[i]=simularTriangular(estimacionesFAI);
-            }
+        for (int i = 0; i<5; i++) {
+            FAI[i]=simularTriangular(estFAI);
+        }
         ArrayList<Double> Inf = new ArrayList<>();
-        Inf.add(simularTriangular(recolectarEstimaciones(scan, "Inf1")));
-        Inf.add(simularTriangular(recolectarEstimaciones(scan, "Inf2")));
-        Inf.add(simularTriangular(recolectarEstimaciones(scan, "Inf3")));
-        Inf.add(simularTriangular(recolectarEstimaciones(scan, "Inf4")));
-        Inf.add(simularTriangular(recolectarEstimaciones(scan, "Inf5")));
+        Inf.add(simularTriangular(estInf1));
+        Inf.add(simularTriangular(estInf2));
+        Inf.add(simularTriangular(estInf3));
+        Inf.add(simularTriangular(estInf4));
+        Inf.add(simularTriangular(estInf5));
         double TasaImpuestos = 0.5;
         double [] FDI  = new double[5];
 
@@ -26,13 +50,8 @@ public class Main {
             FDI[i]=calcularFDI((i+1),FAI[i],Inf,TasaImpuestos,AF,AC);
         }
         double VR = (AC + (0.2*AF)*(1-TasaImpuestos))*(-1);
-        double TIRminima=-0.031;
-        double TIRmaxima=0.1991;
         double [] intervalosTIR = calcularIntervalosTIR(TIRminima,TIRmaxima,20);
         double TIR0 = 0;
-
-        System.out.println("minima: " + calcularVPN(FDI,AF,AC,VR,TIRminima));
-        System.out.println("maxima: " + calcularVPN(FDI,AF,AC,VR,TIRmaxima));
 
         int Intervaloinferior = 0;
         while (calcularVPN(FDI,AF,AC,VR,intervalosTIR[Intervaloinferior])>0){
@@ -42,7 +61,7 @@ public class Main {
         }
 
         System.out.println("La TIR interpolada es: " + TIR0 + " con una VPN de: " + calcularVPN(FDI,AF,AC,VR,TIR0));
-
+        return TIR0;
     }
     public static double simularTriangular(double[] estimaciones){
         double a = estimaciones[0];
