@@ -16,13 +16,17 @@ public class Main {
         double [] estInf3 = recolectarEstimaciones(scan, "Inf3");
         double [] estInf4 = recolectarEstimaciones(scan, "Inf4");
         double [] estInf5 = recolectarEstimaciones(scan, "Inf5");
-        double TIRminima=-0.031;
-        double TIRmaxima=0.1991;
+        double TasaImpuestos = 0.5;
+        double TIRminima=calcularTIRextrema(estAF[0],estAC[0],estFAI[0],estInf1[2],estInf2[2],estInf3[2],estInf4[2],estInf5[2],TasaImpuestos);
+        double TIRmaxima=calcularTIRextrema(estAF[2],estAC[2],estFAI[2],estInf1[0],estInf2[0],estInf3[0],estInf4[0],estInf5[0],TasaImpuestos);
+        System.out.println("TIR minima: "+ TIRminima);
+        System.out.println("TIR maxima: "+ TIRmaxima);
         double [] reporteTIR = new double[numeroIteraciones];
         int indiceReporte = 0;
 
         while (numeroIteraciones>0){
-            reporteTIR[indiceReporte] = iterar(estAF,estAC,estFAI,estInf1,estInf2,estInf3,estInf4,estInf5,TIRminima,TIRmaxima);
+            reporteTIR[indiceReporte] = iterar(estAF,estAC,estFAI,estInf1,estInf2,estInf3,estInf4,estInf5,
+                                        TasaImpuestos,TIRminima,TIRmaxima);
             indiceReporte++;
             numeroIteraciones--;
         }
@@ -30,7 +34,7 @@ public class Main {
     }
     public static double iterar(double [] estAF, double [] estAC, double [] estFAI, double [] estInf1,
                                 double [] estInf2, double [] estInf3, double [] estInf4, double [] estInf5,
-                                double TIRminima, double TIRmaxima){
+                                double TasaImpuestos ,double TIRminima, double TIRmaxima){
         double AF = simularTriangular(estAF);
         double AC = simularTriangular(estAC);
         double [] FAI = new double[5];
@@ -43,14 +47,13 @@ public class Main {
         Inf.add(simularTriangular(estInf3));
         Inf.add(simularTriangular(estInf4));
         Inf.add(simularTriangular(estInf5));
-        double TasaImpuestos = 0.5;
         double [] FDI  = new double[5];
 
         for (int i = 0; i<5; i++){
             FDI[i]=calcularFDI((i+1),FAI[i],Inf,TasaImpuestos,AF,AC);
         }
         double VR = (AC + (0.2*AF)*(1-TasaImpuestos))*(-1);
-        double [] intervalosTIR = calcularIntervalosTIR(TIRminima,TIRmaxima,20);
+        double [] intervalosTIR = calcularIntervalosTIR(TIRminima,TIRmaxima,100);
         double TIR0 = 0;
 
         int Intervaloinferior = 0;
@@ -134,6 +137,33 @@ public class Main {
             intervalos[i]=TIRminima+i*intervalo;
         }
         return intervalos;
+    }
+
+    public static double calcularTIRextrema (double AF, double AC, double FAI, double Inf1, double Inf2, double Inf3,
+                                             double Inf4, double Inf5, double TasaImpuestos){
+        double TIRextrema = 0;
+        ArrayList<Double> Inf = new ArrayList<>();
+        Inf.add(Inf1);
+        Inf.add(Inf2);
+        Inf.add(Inf3);
+        Inf.add(Inf4);
+        Inf.add(Inf5);
+        double [] FDI  = new double[5];
+        for (int i = 0; i<5; i++){
+            FDI[i]=calcularFDI((i+1),FAI,Inf,TasaImpuestos,AF,AC);
+        }
+        double VR = (AC + (0.2*AF)*(1-TasaImpuestos))*(-1);
+
+        if (calcularVPN(FDI,AF,AC,VR,TIRextrema)>0){
+            for (int i=0; calcularVPN(FDI,AF,AC,VR,TIRextrema)>0; i++){
+                TIRextrema=TIRextrema+0.0001;
+            }
+        } else if (calcularVPN(FDI,AF,AC,VR,TIRextrema)<0) {
+            for (int i=0; calcularVPN(FDI,AF,AC,VR,TIRextrema)<0; i++){
+                TIRextrema=TIRextrema-0.0001;
+            }
+        }
+        return TIRextrema;
     }
 
 }
