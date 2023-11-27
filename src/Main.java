@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
-        System.out.println("Numero de iteraciones?:");
+        System.out.println("Numero de iteraciones:");
         int numeroIteraciones = scan.nextInt();
 
         double [] estAF = recolectarEstimaciones(scan, "AF");
@@ -17,20 +17,26 @@ public class Main {
         double [] estInf4 = recolectarEstimaciones(scan, "Inf4");
         double [] estInf5 = recolectarEstimaciones(scan, "Inf5");
         double TasaImpuestos = 0.5;
+
         double TIRminima=calcularTIRextrema(estAF[0],estAC[0],estFAI[0],estInf1[2],estInf2[2],estInf3[2],estInf4[2],estInf5[2],TasaImpuestos);
         double TIRmaxima=calcularTIRextrema(estAF[2],estAC[2],estFAI[2],estInf1[0],estInf2[0],estInf3[0],estInf4[0],estInf5[0],TasaImpuestos);
         System.out.println("TIR minima: "+ TIRminima);
         System.out.println("TIR maxima: "+ TIRmaxima);
-        double [] reporteTIR = new double[numeroIteraciones];
-        int indiceReporte = 0;
-
-        while (numeroIteraciones>0){
-            reporteTIR[indiceReporte] = iterar(estAF,estAC,estFAI,estInf1,estInf2,estInf3,estInf4,estInf5,
-                                        TasaImpuestos,TIRminima,TIRmaxima);
-            indiceReporte++;
-            numeroIteraciones--;
+        double [] intervalosTIR = calcularIntervalosTIR(TIRminima,TIRmaxima,20);
+        int frecuenciaPorIntervalo [] = new int[20];
+        double [] TIRsimuladas = new double[numeroIteraciones];
+        for (int i=0; i<numeroIteraciones;i++){
+            TIRsimuladas[i] = iterar(estAF, estAC, estFAI, estInf1, estInf2, estInf3, estInf4, estInf5,
+                    TasaImpuestos, TIRminima, TIRmaxima);
+            frecuenciaPorIntervalo = clasificarTIR(frecuenciaPorIntervalo, intervalosTIR, TIRsimuladas[i]);
         }
 
+        for (int i =0;i<20;i++){
+            double porcentaje = (Double.valueOf(frecuenciaPorIntervalo[i])/Double.valueOf(numeroIteraciones))*100;
+            System.out.println("En el intervalo: "+intervalosTIR[i]+" a "+intervalosTIR[i+1]+", hay "
+                                +frecuenciaPorIntervalo[i]+" TIR simuladas, con una incidencia del "
+                                +porcentaje+"%.");
+        }
     }
     public static double iterar(double [] estAF, double [] estAC, double [] estFAI, double [] estInf1,
                                 double [] estInf2, double [] estInf3, double [] estInf4, double [] estInf5,
@@ -62,8 +68,6 @@ public class Main {
                     calcularVPN(FDI,AF,AC,VR,intervalosTIR[Intervaloinferior]), calcularVPN(FDI,AF,AC,VR,intervalosTIR[Intervaloinferior+1]));
             Intervaloinferior++;
         }
-
-        System.out.println("La TIR interpolada es: " + TIR0 + " con una VPN de: " + calcularVPN(FDI,AF,AC,VR,TIR0));
         return TIR0;
     }
     public static double simularTriangular(double[] estimaciones){
@@ -97,7 +101,6 @@ public class Main {
         }
         return datos;
     }
-
 
     public static double calcularFDI(int periodo, double FAI, ArrayList<Double>Inf, double T, double AF, double AC){
         double productoriaGral = calcularProductoriaInflacion(1,periodo,Inf);
@@ -164,6 +167,15 @@ public class Main {
             }
         }
         return TIRextrema;
+    }
+
+    public static int[] clasificarTIR(int[]frecuenciaPorIntervalo,double[]intervalosTIR,double TIRaClasificar){
+        int posicion = 0;
+        while (TIRaClasificar>intervalosTIR[posicion+1]){
+            posicion++;
+        }
+        frecuenciaPorIntervalo[posicion]++;
+        return frecuenciaPorIntervalo;
     }
 
 }
