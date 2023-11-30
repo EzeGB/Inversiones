@@ -63,7 +63,7 @@ public class Main {
         } else if (TIRmaxima>TREMA){
             aprobado = true;
             for (int i=0; intervalosTIR[i]<TREMA; i++){
-                if ((frecuenciaAcumulada[i]/numeroIteraciones)>alfa){
+                if ((Double.valueOf(frecuenciaAcumulada[i])/Double.valueOf(numeroIteraciones))>(1-alfa)){
                     aprobado = false;
                 }
             }
