@@ -30,6 +30,19 @@ public class Main {
                     TasaImpuestos, TIRminima, TIRmaxima);
             frecuenciaPorIntervalo = clasificarTIR(frecuenciaPorIntervalo, intervalosTIR, TIRsimuladas[i]);
         }
+        //IMPORTANTE AQUI!!!
+        int frecuenciaAcumulada [] = new int[20];
+        for (int i=0; i<20;i++){
+            if (i==0){
+                frecuenciaAcumulada[i] = frecuenciaPorIntervalo[i];
+            } else {
+                frecuenciaAcumulada[i]=frecuenciaAcumulada[i-1]+frecuenciaPorIntervalo[i];
+            }
+        }
+        //IMPORTANTE!!!
+        double TREMA=0.15;
+        double alfa = 0.9;
+        boolean aprobado = false;
 
         for (int i =0;i<20;i++){
             double porcentaje = (Double.valueOf(frecuenciaPorIntervalo[i])/Double.valueOf(numeroIteraciones))*100;
@@ -37,6 +50,32 @@ public class Main {
                                 +frecuenciaPorIntervalo[i]+" TIR simuladas, con una incidencia del "
                                 +porcentaje+"%.");
         }
+        for (int i =0;i<20;i++){
+            double porcentaje = (Double.valueOf(frecuenciaAcumulada[i])/Double.valueOf(numeroIteraciones))*100;
+            System.out.println("En el intervalo: "+intervalosTIR[i]+" a "+intervalosTIR[i+1]+", la acumulada es:  "
+                    +frecuenciaPorIntervalo[i]+", es decir un "
+                    +porcentaje+"% de las TIR.");
+        }
+        //IMPORTANTE APROBACION O NO!!!
+        if (TIRminima>=TREMA){
+            aprobado = true;
+            System.out.println("El proyecto se aprueba, la TIR siempre supera a la TREMA");
+        } else if (TIRmaxima>TREMA){
+            aprobado = true;
+            for (int i=0; intervalosTIR[i]<TREMA; i++){
+                if ((frecuenciaAcumulada[i]/numeroIteraciones)>alfa){
+                    aprobado = false;
+                }
+            }
+            if (aprobado){
+                System.out.println("El proyecto se aprueba, la TIR es superior a la TREMA mas del 90% de las veces.");
+            } else {
+                System.out.println("El proyecto se rechaza, la TIR es inferior a la TREMA mas del 90% de las veces.");
+            }
+        } else {
+            System.out.println("El proyecto se rechaza, la TIR nunca alcanza a la TREMA");
+        }
+
     }
     public static double iterar(double [] estAF, double [] estAC, double [] estFAI, double [] estInf1,
                                 double [] estInf2, double [] estInf3, double [] estInf4, double [] estInf5,
